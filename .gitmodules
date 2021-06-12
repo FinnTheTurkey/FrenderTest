@@ -1,0 +1,3 @@
+[submodule "Frender"]
+	path = Frender
+	url = https://github.com/FinnTheTurkey/Frender.git
