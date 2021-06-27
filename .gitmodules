@@ -1,3 +1,6 @@
 [submodule "Frender"]
 	path = Frender
 	url = https://github.com/FinnTheTurkey/Frender.git
+[submodule "tinygltf"]
+	path = tinygltf
+	url = https://github.com/syoyo/tinygltf.git
