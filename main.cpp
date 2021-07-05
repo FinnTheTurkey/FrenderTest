@@ -20,18 +20,19 @@ double elapsed_time;
 void loop(float delta)
 {
     // Show FPS
-    elapsed_time += delta;
+    // elapsed_time += delta;
 
-    if (elapsed_time > 0.5)
-    {
-        std::ostringstream outs;
-        outs.precision(3); // Set precision of numbers
-        // outs.fill(3);
+    // if (elapsed_time > 0.5)
+    // {
+    //     std::ostringstream outs;
+    //     outs.precision(3); // Set precision of numbers
+    //     // outs.fill(3);
 
-        outs << std::fixed << "FPS: " << renderer->frame_rate; // << " EFT: " << window->time_time << " EFPS: " << 1/window->time_time;
+    //     outs << std::fixed << "FPS: " << 1; // << " EFT: " << window->time_time << " EFPS: " << 1/window->time_time;
 
-        window->setWindowTitle(outs.str());
-    }
+    //     window->setWindowTitle(outs.str());
+    //     elapsed_time = 0;
+    // }
 
     auto t = ro.getTransform();
     t = glm::rotate(t, 3.14f * delta, glm::vec3(0, 1, 0));
@@ -48,8 +49,8 @@ void loop(float delta)
 int main(int, char**)
 {
     Frender::Window w({640, 480, "Hello Frender"});
-    // w.setVsync(false);
-    w.setVsync(true);
+    w.setVsync(false);
+    // w.setVsync(true);
 
     Frender::Renderer r(640, 480);
     renderer = &r;
