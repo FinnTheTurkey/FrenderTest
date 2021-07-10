@@ -1,5 +1,6 @@
 #include "Frender/Frender.hh"
 
+#include <cstdio>
 #include <iostream>
 
 #include "GLTFLoader.hh"
@@ -80,17 +81,24 @@ Frender::MeshRef loadMesh(unsigned int id, const aiScene* scene, Frender::Render
 
     auto mesh = scene->mMeshes[id];
     
+    // std::cout << "{";
     for (int i = 0; i < mesh->mNumVertices; i++)
     {
         Frender::Vertex vert(
             mesh->mVertices[i].x,
             mesh->mVertices[i].y,
             mesh->mVertices[i].z,
-            // mesh->mNormals[i].x,
-            // mesh->mNormals[i].y,
-            // mesh->mNormals[i].z,
+            mesh->mNormals[i].x,
+            mesh->mNormals[i].y,
+            mesh->mNormals[i].z,
             0,
-            0
+            0,
+            mesh->mTangents[i].x,
+            mesh->mTangents[i].y,
+            mesh->mTangents[i].z,
+            mesh->mBitangents[i].x,
+            mesh->mBitangents[i].y,
+            mesh->mBitangents[i].z
         );
 
         // TODO: Deal with multiple UV layers
@@ -105,7 +113,25 @@ Frender::MeshRef loadMesh(unsigned int id, const aiScene* scene, Frender::Render
         }
 
         vertices.push_back(vert);
+
+        // If you need a mesh in C++
+        // std::printf("{%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f},\n",
+                // mesh->mVertices[i].x,
+            // mesh->mVertices[i].y,
+            // mesh->mVertices[i].z,
+            // mesh->mNormals[i].x,
+            // mesh->mNormals[i].y,
+            // mesh->mNormals[i].z,
+            // vert.tex_coords.x,
+            // vert.tex_coords.y,
+            // mesh->mTangents[i].x,
+            // mesh->mTangents[i].y,
+            // mesh->mTangents[i].z,
+            // mesh->mBitangents[i].x,
+            // mesh->mBitangents[i].y,
+            // mesh->mBitangents[i].z);
     }
+    // std::cout << "}\n{";
 
     // Indices
     for (int i = 0; i < mesh->mNumFaces; i++)
@@ -113,8 +139,11 @@ Frender::MeshRef loadMesh(unsigned int id, const aiScene* scene, Frender::Render
         for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
         {
             indices.push_back(mesh->mFaces[i].mIndices[j]);
+            // std::cout << mesh->mFaces[i].mIndices[j] << ", ";
         }
     }
+
+    // std::cout << "}\n";
 
     return renderer->createMesh(vertices, indices);
 }
@@ -241,12 +270,88 @@ uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* 
             texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
         }
 
-        m->textures.set("tex", texes[path.C_Str()]);
-        m->uniforms.set("has_texture", 1);
+        m->textures.set("diffuse_map", texes[path.C_Str()]);
+        m->uniforms.set("has_diffuse_map", 1);
     }
     else
     {
-        m->uniforms.set("has_texture", 0);
+        m->uniforms.set("has_diffuse_map", 0);
+    }
+
+    // Deal with roughness and metalness
+    float roughness = 0.4;
+    float metallic = 0.0;
+    
+    if (mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, roughness) != aiReturn_SUCCESS)
+    {
+        // Not GLTF :(
+        // That makes everything more annoying
+    }
+
+    if (mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, roughness) != aiReturn_SUCCESS)
+    {
+        // Not GLTF :(
+        // That makes everything more annoying
+    }
+
+    m->uniforms.set("roughness", roughness);
+    m->uniforms.set("metallic", metallic);
+
+    // Check for normal map
+    if (mat->GetTextureCount(aiTextureType_NORMALS) > 0)
+    {
+        aiString path;
+        mat->GetTexture(aiTextureType_NORMALS, 0, &path);
+
+        if (texes.find(path.C_Str()) == texes.end())
+        {
+            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+        }
+
+        m->textures.set("normal_map", texes[path.C_Str()]);
+        m->uniforms.set("has_normal_map", 1);
+    }
+    else
+    {
+        m->uniforms.set("has_normal_map", 0);
+    }
+
+    // Check for roughness map
+    if (mat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
+    {
+        aiString path;
+        mat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path);
+
+        if (texes.find(path.C_Str()) == texes.end())
+        {
+            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+        }
+
+        m->textures.set("roughness_map", texes[path.C_Str()]);
+        m->uniforms.set("has_roughness_map", 1);
+    }
+    else
+    {
+        m->uniforms.set("has_roughness_map", 0);
+    }
+
+    // Check for metalness map
+    if (mat->GetTextureCount(aiTextureType_METALNESS) > 0)
+    {
+        aiString path;
+        mat->GetTexture(aiTextureType_METALNESS, 0, &path);
+
+        if (texes.find(path.C_Str()) == texes.end())
+        {
+            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+        }
+
+        m->textures.set("metal_map", texes[path.C_Str()]);
+        m->uniforms.set("has_metal_map", 1);
+    }
+    else
+    {
+        m->uniforms.set("has_metal_map", 0);
     }
 
     return new_mat;

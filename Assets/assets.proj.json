@@ -1,0 +1,13 @@
+{
+    "files": [
+        {
+            "input": "Sphere.obj",
+            "output": "Sphere.farc"
+        },
+        {
+            "input": "jmodl.glb",
+            "output": "jmodl.farc"
+        }
+    ],
+    "version": 1
+}

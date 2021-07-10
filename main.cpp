@@ -49,18 +49,18 @@ void loop(float delta)
 int main(int, char**)
 {
     Frender::Window w({640, 480, "Hello Frender"});
-    w.setVsync(false);
-    // w.setVsync(true);
+    // w.setVsync(false);
+    w.setVsync(true);
 
     Frender::Renderer r(640, 480);
     renderer = &r;
     window = &w;
 
     std::vector<Frender::Vertex> vertices = {
-        {0.5f,  0.5f, 0.0f , 1, 0}, // top right
-        {0.5f, -0.5f, 0.0f , 1, 1}, // bottom right
-        {-0.5f, -0.5f, 0.0f, 0, 1},  // bottom left
-        {-0.5f,  0.5f, 0.0f, 0, 0}  // top left 
+        {1.0f,  1.0f, 0.0f , 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0}, // top right
+        {1.0f, -1.0f, 0.0f , 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0}, // bottom right
+        {-1.0f, -1.0f, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  // bottom left
+        {-1.0f,  1.0f, 0.0f, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0}  // top left 
     };
     std::vector<uint32_t> indices = {  // note that we start from 0!
         0, 1, 3,   // first triangle
@@ -79,7 +79,7 @@ int main(int, char**)
     camera = cam_mat;
 
     r.getMaterial(mat)->uniforms.set("color", glm::vec3(0.6, 1, 0.6));
-    r.getMaterial(mat)->uniforms.set("has_texture", 1);
+    r.getMaterial(mat)->uniforms.set("has_diffuse_map", 1);
 
     // Texture
     int width, height, channels;
@@ -100,6 +100,9 @@ int main(int, char**)
     stbi_image_free(data);
 
     auto objs = loadModel(&r, "Assets/jmodl.glb");
+    // auto objs = loadModel(&r, "Assets/Sphere.obj");
+
+    auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(1, 1, 1), 30);
 
     w.mainloop(&r, loop);
 }
