@@ -34,9 +34,9 @@ void loop(float delta)
     //     elapsed_time = 0;
     // }
 
-    auto t = ro.getTransform();
-    t = glm::rotate(t, 3.14f * delta, glm::vec3(0, 1, 0));
-    ro.setTransform(t);
+    // auto t = ro.getTransform();
+    // t = glm::rotate(t, 3.14f * delta, glm::vec3(0, 1, 0));
+    // ro.setTransform(t);
     
     angle += ((3.14/2) * delta);
     camera = glm::mat4();
@@ -70,7 +70,7 @@ int main(int, char**)
     auto mesh = r.createMesh(vertices, indices);
     auto mat = r.createMaterial();
 
-    ro = r.createRenderObject(mesh, mat, glm::mat4());
+    // ro = r.createRenderObject(mesh, mat, glm::mat4());
 
     // Camera
     glm::mat4 cam_mat;
@@ -99,10 +99,32 @@ int main(int, char**)
 
     stbi_image_free(data);
 
-    auto objs = loadModel(&r, "Assets/jmodl.glb");
-    // auto objs = loadModel(&r, "Assets/Sphere.obj");
+    // auto objs = loadModel(&r, "Assets/jmodl.glb");
 
-    auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(1, 1, 1), 30);
+    // for (int x = -24; x < 24; x+=4)
+    // {
+    //     for (int y = -24; y < 24; y+=4)
+    //     {
+    //         for (int z = -24; z < 24; z+=4)
+    //         {
+    //             auto objs = loadModel(&r, "Assets/Sphere.obj");
+    //             for (auto i : objs)
+    //             {
+    //                 i.setTransform(glm::translate(glm::mat4(), glm::vec3(x, y, z)));
+    //             }
+
+    //         }
+    //     }
+    // }
+    auto objs = loadModel(&r, "Assets/Sphere.obj");
+
+    auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(1, 0, 0), 4);
+    auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 1, 0), 4);
+    auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 1), 4);
+    // auto dlight = r.createDirectionalLight(glm::vec3(1.2, 0.8, 0.8), glm::vec3(0.2f, -1.0f, 0.3f));
+    // auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
+    // auto dlight1 = r.createDirectionalLight(glm::vec3(1.2, 0.8, 0.8), glm::vec3(0.2f, -1.0f, -0.3f));
+    // auto dlight2 = r.createDirectionalLight(glm::vec3(1.2, 0.8, 0.8), glm::vec3(-0.2f, -1.0f, 0.3f));
 
     w.mainloop(&r, loop);
 }
