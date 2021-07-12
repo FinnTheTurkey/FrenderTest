@@ -42,6 +42,7 @@ void loop(float delta)
     camera = glm::mat4();
     camera = glm::rotate(camera, angle, glm::vec3(0, 1, 0));
     camera = glm::translate(camera, glm::vec3(0, 0, 2.5));
+    // camera = glm::translate(camera, glm::vec3(0, 10, 0));
 
     renderer->setCamera(camera);
 }
@@ -49,8 +50,8 @@ void loop(float delta)
 int main(int, char**)
 {
     Frender::Window w({640, 480, "Hello Frender"});
-    // w.setVsync(false);
-    w.setVsync(true);
+    w.setVsync(false);
+    // w.setVsync(true);
 
     Frender::Renderer r(640, 480);
     renderer = &r;
@@ -101,30 +102,35 @@ int main(int, char**)
 
     // auto objs = loadModel(&r, "Assets/jmodl.glb");
 
-    // for (int x = -24; x < 24; x+=4)
-    // {
-    //     for (int y = -24; y < 24; y+=4)
-    //     {
-    //         for (int z = -24; z < 24; z+=4)
-    //         {
-    //             auto objs = loadModel(&r, "Assets/Sphere.obj");
-    //             for (auto i : objs)
-    //             {
-    //                 i.setTransform(glm::translate(glm::mat4(), glm::vec3(x, y, z)));
-    //             }
+    for (int x = -24; x < 24; x+=4)
+    {
+        for (int y = -24; y < 24; y+=4)
+        {
+            for (int z = -24; z < 24; z+=4)
+            {
+                auto objs = loadModel(&r, "Assets/HighPolySphere.obj");
+                // auto objs = loadModel(&r, "Assets/jmodl.glb");
+                for (auto i : objs)
+                {
+                    i.setTransform(glm::translate(glm::mat4(), glm::vec3(x, y, z)));
+                }
 
-    //         }
-    //     }
-    // }
-    auto objs = loadModel(&r, "Assets/Sphere.obj");
+                auto light = r.createPointLight(glm::vec3(x, y, z), glm::vec3(((x+24.0)/48.0), ((y+24.0)/48.0), ((z+24.0)/48.0)), 6);
 
-    auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(1, 0, 0), 4);
-    auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 1, 0), 4);
-    auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 1), 4);
-    // auto dlight = r.createDirectionalLight(glm::vec3(1.2, 0.8, 0.8), glm::vec3(0.2f, -1.0f, 0.3f));
+            }
+        }
+    }
+    // auto objs = loadModel(&r, "Assets/Sphere.obj");
+
+    // auto objs = loadModel(&r, "Assets/Sponza/sponza.obj");
+
+    // auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(1, 0, 0), 4);
+    // auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 1, 0), 4);
+    // auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 1), 4);
+    // auto dlight = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, 0.3f));
     // auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
-    // auto dlight1 = r.createDirectionalLight(glm::vec3(1.2, 0.8, 0.8), glm::vec3(0.2f, -1.0f, -0.3f));
-    // auto dlight2 = r.createDirectionalLight(glm::vec3(1.2, 0.8, 0.8), glm::vec3(-0.2f, -1.0f, 0.3f));
+    // auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
+    // auto dlight2 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, 0.3f));
 
     w.mainloop(&r, loop);
 }
