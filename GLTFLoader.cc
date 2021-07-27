@@ -354,6 +354,8 @@ uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* 
         m->uniforms.set("has_metal_map", 0);
     }
 
+    std::cout << "Roughness: " << roughness << " Metalness: " << metallic << "\n";
+
     return new_mat;
 }
 
