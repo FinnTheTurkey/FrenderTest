@@ -1,7 +1,9 @@
 #include <ios>
 #include <iostream>
 #include "Frender/Frender.hh"
+#include "Frender/Keys.hh"
 #include "GLTFLoader.hh"
+#include "glm/gtc/quaternion.hpp"
 // #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
@@ -16,6 +18,10 @@ glm::mat4 camera;
 float angle = 0;
 
 double elapsed_time;
+
+glm::mat4 camera_position;
+glm::mat4 camera_rotationa;
+glm::mat4 camera_rotationb;
 
 void loop(float delta)
 {
@@ -38,13 +44,53 @@ void loop(float delta)
     // t = glm::rotate(t, 3.14f * delta, glm::vec3(0, 1, 0));
     // ro.setTransform(t);
     
-    angle += ((3.14/2) * delta);
-    camera = glm::mat4();
-    camera = glm::rotate(camera, angle, glm::vec3(0, 1, 0));
-    camera = glm::translate(camera, glm::vec3(0, 0, 2.5));
-    // camera = glm::translate(camera, glm::vec3(0, 10, 0));
+    // angle += ((3.14/4) * delta);
+    // camera = glm::mat4();
+    // camera = glm::rotate(camera, angle, glm::vec3(0, 1, 0));
+    // // camera = glm::translate(camera, glm::vec3(0, 20, 2.5));
+    // camera = glm::translate(camera, glm::vec3(0, 0, 2.5));
 
-    renderer->setCamera(camera);
+    if (window->isKeyDown(FRENDER_KEY_S))
+    {
+        // std::cout << "WDown\n";
+        camera_position = glm::translate(camera_position, glm::vec3(0, 0, 10) * delta);
+    }
+    if (window->isKeyDown(FRENDER_KEY_W))
+    {
+        camera_position = glm::translate(camera_position, glm::vec3(0, 0, -10) * delta);
+        // camera_position = glm::translate(camera_position, glm::vec3(glm::inverse(camera_position) * glm::vec4(0, 0, -10, 1)) * delta);
+    }
+
+    if (window->isKeyDown(FRENDER_KEY_A))
+    {
+        // std::cout << "WDown\n";
+        camera_position = glm::translate(camera_position, glm::vec3(10, 0, 0) * delta);
+    }
+    if (window->isKeyDown(FRENDER_KEY_D))
+    {
+        camera_position = glm::translate(camera_position, glm::vec3(-10, 0, 0) * delta);
+    }
+
+    if (window->isKeyJustPressed(FRENDER_KEY_ESCAPE))
+    {
+        std::cout << "Releasing\n";
+        window->setMouseMode(Frender::Regular);
+    }
+
+    if (window->isKeyJustPressed(FRENDER_KEY_ENTER))
+    {
+        std::cout << "Capturing\n";
+        window->setMouseMode(Frender::Captured);
+    }
+
+    // Looking around
+    camera_position = glm::rotate(camera_position, window->getMouseOffset().y * 0.005f, glm::vec3(1, 0, 0));
+    camera_position = glm::rotate(camera_position, window->getMouseOffset().x * -0.005f, glm::vec3(glm::inverse(camera_position) * glm::vec4(0, 1, 0, 1)));
+
+    // glm::mat4 camera_complete = camera_rotation;
+    // camera_complete[3] = camera_position[3];
+
+    renderer->setCamera(camera_position);
 }
 
 int main(int, char**)
@@ -100,38 +146,51 @@ int main(int, char**)
 
     // stbi_image_free(data);
 
-    auto objs = loadModel(&r, "Assets/jmodl.glb");
+    // auto objs = loadModel(&r, "Assets/jmodl.glb");
     // auto objs = loadModel(&r, "Assets/HighPolySphere.obj");
 
-    for (int x = -24; x < 24; x+=4)
-    {
-        for (int y = -24; y < 24; y+=4)
-        {
-            for (int z = -24; z < 24; z+=4)
-            {
-                // auto objs = loadModel(&r, "Assets/jmodl.glb");
-                for (auto i : objs)
-                {
-                    auto o = i.duplicate();
-                    o.setTransform(glm::translate(i.getTransform(), glm::vec3(x, y, z)));
-                }
+    // for (int x = -24; x < 24; x+=4)
+    // {
+    //     for (int y = -24; y < 24; y+=4)
+    //     {
+    //         for (int z = -24; z < 24; z+=4)
+    //         {
+    //             // auto objs = loadModel(&r, "Assets/jmodl.glb");
+    //             for (auto i : objs)
+    //             {
+    //                 auto o = i.duplicate();
+    //                 o.setTransform(glm::translate(i.getTransform(), glm::vec3(x, y, z)));
+    //             }
 
-                auto light = r.createPointLight(glm::vec3(x, y, z), glm::vec3(((x+24.0)/48.0), ((y+24.0)/48.0), ((z+24.0)/48.0)), 5);
+    //             auto light = r.createPointLight(glm::vec3(x, y, z), glm::vec3(((x+24.0)/48.0), ((y+24.0)/48.0), ((z+24.0)/48.0)) * 1.0f, 6);
 
-            }
-        }
-    }
+    //         }
+    //     }
+    // }
     // auto objs = loadModel(&r, "Assets/HighPolySphere.obj");
 
     // auto objs = loadModel(&r, "Assets/Sponza/sponza.obj");
+    ///home/finn/cpp/flux/Frender/Assets/sponza-scene/source/sponza_zip/glTF/Sponza.gltf
+    auto objs = loadModel(&r, "Assets/sponza-scene/source/sponza_zip/glTF/Sponza.gltf");
 
-    // auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
-    // auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
-    // auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
-    // auto dlight = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, 0.3f));
-    // auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
-    // auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
-    // auto dlight2 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, 0.3f));
+
+    for (auto i : objs)
+    {
+        // Scale it up
+        i.setTransform(glm::scale(i.getTransform(), glm::vec3(1.5)));
+    }
+
+    auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
+    auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
+    auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
+    auto dlight = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, 0.3f));
+    auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
+    auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
+    auto dlight2 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, 0.3f));
+
+    camera_position = glm::translate(glm::mat4(), glm::vec3(0, 5, 0));
+
+    w.setMouseMode(Frender::Captured);
 
     w.mainloop(&r, loop);
 }

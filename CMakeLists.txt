@@ -12,6 +12,8 @@ add_subdirectory(Frender)
 target_link_libraries(FrenderPlayground Frender)
 target_include_directories(FrenderPlayground PUBLIC .)
 
+add_compile_definitions(GLM_FORCE_CTOR_INIT)
+
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 set(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(assimp)

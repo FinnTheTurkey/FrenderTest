@@ -1,5 +1,6 @@
 #include "Frender/Frender.hh"
 
+#include <cmath>
 #include <cstdio>
 #include <iostream>
 
@@ -148,7 +149,7 @@ Frender::MeshRef loadMesh(unsigned int id, const aiScene* scene, Frender::Render
     return renderer->createMesh(vertices, indices);
 }
 
-Frender::Texture loadTexture(std::string name, const aiScene* scene, Frender::Renderer* renderer)
+Frender::Texture loadTexture(std::filesystem::path input, std::string name, const aiScene* scene, Frender::Renderer* renderer)
 {
     if (name[0] == '*')
     {
@@ -186,7 +187,7 @@ Frender::Texture loadTexture(std::string name, const aiScene* scene, Frender::Re
     else
     {
         // External texture
-        std::filesystem::path input(name);
+        // std::filesystem::path input(name);
         std::filesystem::path og = name;
         std::filesystem::path new_g;
         if (og.is_absolute() == true)
@@ -230,6 +231,7 @@ Frender::Texture loadTexture(std::string name, const aiScene* scene, Frender::Re
         else
         {
             std::cerr << "Waaaaaaaaaaaaaa image not found\n";
+            std::cout << new_g << "\n";
         }
 
         stbi_image_free(data);
@@ -238,7 +240,7 @@ Frender::Texture loadTexture(std::string name, const aiScene* scene, Frender::Re
     }
 }
 
-uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* renderer, std::map<std::string, Frender::Texture>& texes)
+uint32_t loadMaterial(std::filesystem::path input, unsigned int id, const aiScene* scene, Frender::Renderer* renderer, std::map<std::string, Frender::Texture>& texes)
 {
     auto mat = scene->mMaterials[id];
 
@@ -267,7 +269,7 @@ uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* 
 
         if (texes.find(path.C_Str()) == texes.end())
         {
-            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+            texes[path.C_Str()] = loadTexture(input, path.C_Str(), scene, renderer);
         }
 
         m->textures.set("diffuse_map", texes[path.C_Str()]);
@@ -305,7 +307,7 @@ uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* 
 
         if (texes.find(path.C_Str()) == texes.end())
         {
-            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+            texes[path.C_Str()] = loadTexture(input, path.C_Str(), scene, renderer);
         }
 
         m->textures.set("normal_map", texes[path.C_Str()]);
@@ -324,7 +326,7 @@ uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* 
 
         if (texes.find(path.C_Str()) == texes.end())
         {
-            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+            texes[path.C_Str()] = loadTexture(input, path.C_Str(), scene, renderer);
         }
 
         m->textures.set("roughness_map", texes[path.C_Str()]);
@@ -343,7 +345,7 @@ uint32_t loadMaterial(unsigned int id, const aiScene* scene, Frender::Renderer* 
 
         if (texes.find(path.C_Str()) == texes.end())
         {
-            texes[path.C_Str()] = loadTexture(path.C_Str(), scene, renderer);
+            texes[path.C_Str()] = loadTexture(input, path.C_Str(), scene, renderer);
         }
 
         m->textures.set("metal_map", texes[path.C_Str()]);
@@ -408,7 +410,7 @@ std::vector<Frender::RenderObjectRef> loadModel(Frender::Renderer* renderer, con
                 auto mesh = scene->mMeshes[node->mMeshes[i]];
                 if (materials.find(mesh->mMaterialIndex) == materials.end())
                 {
-                    materials[mesh->mMaterialIndex] = loadMaterial(mesh->mMaterialIndex, scene, renderer, texes);
+                    materials[mesh->mMaterialIndex] = loadMaterial(filename, mesh->mMaterialIndex, scene, renderer, texes);
                 }
 
                 auto fmesh = meshes[node->mMeshes[i]];
@@ -416,7 +418,7 @@ std::vector<Frender::RenderObjectRef> loadModel(Frender::Renderer* renderer, con
 
                 auto obj = renderer->createRenderObject(fmesh, fmat, global_transform);
                 render_objects.push_back(obj);
-                std::cout << "Made object\n";
+                // std::cout << "Made object\n";
             }
         }
 
@@ -424,6 +426,48 @@ std::vector<Frender::RenderObjectRef> loadModel(Frender::Renderer* renderer, con
         for (int i = 0; i < node->mNumChildren; i++)
         {
             nodes.emplace(node->mChildren[i]);
+        }
+    }
+
+    // Add Lights
+    for (int i = 0; i < scene->mNumLights; i++)
+    {
+        auto light = scene->mLights[i];
+        switch (light->mType)
+        {
+        case (aiLightSource_DIRECTIONAL):
+        {
+            renderer->createDirectionalLight(glm::vec3(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.g), glm::vec3(light->mDirection[0], light->mDirection[1], light->mDirection[2]));
+            std::cout << "Made directional light\n";
+            break;
+        }
+        case (aiLightSource_POINT):
+        {
+            /*
+            Algebra:
+            Atten = 1/( att0 + att1 * d + att2 * d*d)
+            Atten = 1/(att2d2 + att1d + att0)
+            att2d2 + att1d + att0 = 1/Atten
+            d = (-att1 +/- sqrt(att12 - 4att2att0))/2att2
+            */
+
+            float radius = (-light->mAttenuationLinear - std::sqrt(std::pow(light->mAttenuationLinear, 2) - 4 * light->mAttenuationQuadratic + light->mAttenuationConstant))/2 * light->mAttenuationQuadratic;
+            if (radius < 0)
+            {
+                // Other x intercept
+                radius = (-light->mAttenuationLinear + std::sqrt(std::pow(light->mAttenuationLinear, 2) - 4 * light->mAttenuationQuadratic + light->mAttenuationConstant))/2 * light->mAttenuationQuadratic;
+            }
+
+            renderer->createPointLight(glm::vec3(light->mPosition.x, light->mPosition.y, light->mPosition.z),
+                glm::vec3(light->mColorDiffuse.r, light->mColorDiffuse.g, light->mColorDiffuse.g),
+                radius);
+            std::cout << "Made point light\n";
+            break;
+        }
+        default: {
+            std::cout << "Unsupported light type\n";
+            break;
+        }
         }
     }
 
