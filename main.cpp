@@ -185,12 +185,14 @@ int main(int, char**)
     {
         // TODO: Be able to delete old one
         auto traits = renderer->getRenderObjectTraits(i);
-        i.setTransform(glm::scale(i.getTransform(), glm::vec3(0.9)));
+        i.setTransform(glm::scale(i.getTransform(), glm::vec3(0)));
 
         // Create new, emmisive object
-        auto mat = renderer->createUnlitMaterial(1.5);
+        auto mat = renderer->createMaterial();
         renderer->getMaterial(mat)->uniforms.set("color", glm::vec3(0, 1, 0));
-        renderer->createRenderObject(traits.mesh, mat, traits.transform);
+        renderer->createLitRenderObject(traits.mesh, mat, traits.transform);
+
+        renderer->createRenderObject(traits.mesh, mat, glm::translate(traits.transform, glm::vec3(4, 0, 0)));
     }
 
     auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
@@ -203,7 +205,7 @@ int main(int, char**)
 
     camera_position = glm::translate(glm::mat4(), glm::vec3(0, 5, 0));
 
-    w.setMouseMode(Frender::Captured);
+    // w.setMouseMode(Frender::Captured);
 
     w.mainloop(&r, loop);
 }
