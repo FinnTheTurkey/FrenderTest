@@ -129,22 +129,23 @@ int main(int, char**)
     r.getMaterial(mat)->uniforms.set("has_diffuse_map", 1);
 
     // Texture
-    // int width, height, channels;
-    // stbi_set_flip_vertically_on_load(true);  
-    // unsigned char* data = stbi_load("container.jpg", &width, &height, &channels, 4);
-    // std::cout << channels << "\n";
+    int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
+    float* data = stbi_loadf("Assets/GrandCanyon_C_YumaPoint/GCanyon_C_YumaPoint_3k.hdr", &width, &height, &channels, STBI_rgb_alpha);
+    std::cout << channels << "\n";
 
-    // if (data)
-    // {
-    //     auto tex = r.createTexture(width, height, data);
-    //     r.getMaterial(mat)->textures.set("tex", tex);
-    // }
-    // else
-    // {
-    //     std::cerr << "Waaaaaaaaaaaaaa image not found\n";
-    // }
+    if (data)
+    {
+        // auto tex = r.createTexture(width, height, data);
+        // r.getMaterial(mat)->textures.set("tex", tex);
+        r.setSkybox(width, height, data);
+    }
+    else
+    {
+        std::cerr << "Waaaaaaaaaaaaaa image not found\n";
+    }
 
-    // stbi_image_free(data);
+    stbi_image_free(data);
 
     // auto objs = loadModel(&r, "Assets/jmodl.glb");
     // auto objs = loadModel(&r, "Assets/HighPolySphere.obj");
@@ -198,10 +199,11 @@ int main(int, char**)
     auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
     auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
     auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
-    auto dlight = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, 0.3f));
+    auto dlight = r.createDirectionalLight(glm::vec3(1.5, 1.5, 1.5), glm::vec3(0.2f, -1.0f, 0.3f));
     auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
     auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
     auto dlight2 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, 0.3f));
+    auto dlight3 = r.createDirectionalLight(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 1.0f, 0));
 
     camera_position = glm::translate(glm::mat4(), glm::vec3(0, 5, 0));
 
