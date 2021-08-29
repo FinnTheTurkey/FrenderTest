@@ -189,7 +189,7 @@ int main(int, char**)
         i.setTransform(glm::scale(i.getTransform(), glm::vec3(0)));
 
         // Create new, emmisive object
-        auto mat = renderer->createMaterial();
+        auto mat = renderer->createLitMaterial();
         renderer->getMaterial(mat)->uniforms.set("color", glm::vec3(0, 1, 0));
         renderer->createLitRenderObject(traits.mesh, mat, traits.transform);
 
@@ -199,11 +199,11 @@ int main(int, char**)
     auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
     auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
     auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
-    auto dlight = r.createDirectionalLight(glm::vec3(1.5, 1.5, 1.5), glm::vec3(0.2f, -1.0f, 0.3f));
-    auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
-    auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
-    auto dlight2 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, 0.3f));
-    auto dlight3 = r.createDirectionalLight(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 1.0f, 0));
+    // auto dlight = r.createDirectionalLight(glm::vec3(1.5, 1.5, 1.5), glm::vec3(0.2f, -1.0f, 0.3f));
+    // auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
+    // auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
+    // auto dlight2 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, 0.3f));
+    // auto dlight3 = r.createDirectionalLight(glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 1.0f, 0));
 
     camera_position = glm::translate(glm::mat4(), glm::vec3(0, 5, 0));
 
