@@ -196,9 +196,9 @@ int main(int, char**)
         renderer->createRenderObject(traits.mesh, mat, glm::translate(traits.transform, glm::vec3(4, 0, 0)));
     }
 
-    auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
-    auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
-    auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
+    // auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
+    // auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
+    // auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
     // auto dlight = r.createDirectionalLight(glm::vec3(1.5, 1.5, 1.5), glm::vec3(0.2f, -1.0f, 0.3f));
     // auto dlight0 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(-0.2f, -1.0f, -0.3f));
     // auto dlight1 = r.createDirectionalLight(glm::vec3(1, 1, 1), glm::vec3(0.2f, -1.0f, -0.3f));
