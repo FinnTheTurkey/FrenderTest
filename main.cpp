@@ -1,6 +1,7 @@
 #include <ios>
 #include <iostream>
 #include "Frender/Frender.hh"
+#include "Frender/FrenderTools.hh"
 #include "Frender/Keys.hh"
 #include "GLTFLoader.hh"
 #include "glm/gtc/quaternion.hpp"
@@ -22,6 +23,8 @@ double elapsed_time;
 glm::mat4 camera_position;
 glm::mat4 camera_rotationa;
 glm::mat4 camera_rotationb;
+
+FrenderTools::RenderGroup rg;
 
 void loop(float delta)
 {
@@ -91,15 +94,17 @@ void loop(float delta)
     // camera_complete[3] = camera_position[3];
 
     renderer->setCamera(camera_position);
+
+    rg.setTransform(glm::rotate(rg.getTransform(), 1 * delta, glm::vec3(0, 1, 0)));
 }
 
 int main(int, char**)
 {
-    Frender::Window w({640, 480, "Hello Frender"});
+    Frender::Window w({1280, 720, "Hello Frender"});
     w.setVsync(false);
     // w.setVsync(true);
 
-    Frender::Renderer r(640, 480);
+    Frender::Renderer r(1280, 720);
     renderer = &r;
     window = &w;
 
@@ -193,7 +198,21 @@ int main(int, char**)
         renderer->getMaterial(mat)->uniforms.set("color", glm::vec3(0, 1, 0));
         renderer->createLitRenderObject(traits.mesh, mat, traits.transform);
 
-        renderer->createRenderObject(traits.mesh, mat, glm::translate(traits.transform, glm::vec3(4, 0, 0)));
+        auto rg2 = FrenderTools::RenderGroup();
+        rg2.setTransform(glm::translate(glm::mat4(), glm::vec3(2, 2, 2)));
+        for (int i = 0; i < 3; i++)
+        {
+            auto mat = renderer->createMaterial();
+            renderer->getMaterial(mat)->uniforms.set("color", glm::vec3(i == 0 ? 0.8 : 0, i == 1 ? 0.8 : 0, i == 2 ? 0.8 : 0));
+            renderer->getMaterial(mat)->uniforms.set("roughness", (float)i / 2.0f + 0.01f);
+            auto ro1 = renderer->createRenderObject(traits.mesh, mat, glm::translate(glm::mat4(), glm::vec3(2, 2 + (i*2), 2)));
+            rg2.addRenderObject(ro1);
+        }
+
+        auto ro2 = renderer->createRenderObject(traits.mesh, mat, glm::translate(traits.transform, glm::vec3(4, 0, 0)));
+        rg.addRenderObject(i);
+        rg.addRenderObject(ro2);
+        rg.addRenderGroup(rg2);
     }
 
     // auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
