@@ -1,18 +1,19 @@
-#include <ios>
-#include <iostream>
 #include "Frender/Frender.hh"
 #include "Frender/FrenderTools.hh"
 #include "Frender/Keys.hh"
 #include "GLTFLoader.hh"
 #include "glm/gtc/quaternion.hpp"
+#include <ios>
+#include <iostream>
 // #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <string>
 #include <sstream>
+#include <string>
 
 Frender::RenderObjectRef ro;
+bool ro_destroyed = false;
 Frender::Window* window;
 Frender::Renderer* renderer;
 glm::mat4 camera;
@@ -25,6 +26,7 @@ glm::mat4 camera_rotationa;
 glm::mat4 camera_rotationb;
 
 FrenderTools::RenderGroup rg;
+Frender::LightRef light;
 
 void loop(float delta)
 {
@@ -46,7 +48,7 @@ void loop(float delta)
     // auto t = ro.getTransform();
     // t = glm::rotate(t, 3.14f * delta, glm::vec3(0, 1, 0));
     // ro.setTransform(t);
-    
+
     // angle += ((3.14/4) * delta);
     // camera = glm::mat4();
     // camera = glm::rotate(camera, angle, glm::vec3(0, 1, 0));
@@ -61,7 +63,8 @@ void loop(float delta)
     if (window->isKeyDown(FRENDER_KEY_W))
     {
         camera_position = glm::translate(camera_position, glm::vec3(0, 0, -10) * delta);
-        // camera_position = glm::translate(camera_position, glm::vec3(glm::inverse(camera_position) * glm::vec4(0, 0, -10, 1)) * delta);
+        // camera_position = glm::translate(camera_position, glm::vec3(glm::inverse(camera_position) * glm::vec4(0, 0,
+        // -10, 1)) * delta);
     }
 
     if (window->isKeyDown(FRENDER_KEY_A))
@@ -86,9 +89,16 @@ void loop(float delta)
         window->setMouseMode(Frender::Captured);
     }
 
+    if (window->isKeyJustPressed(FRENDER_KEY_X) && !ro_destroyed)
+    {
+        renderer->destroyRenderObject(ro);
+        ro_destroyed = true;
+    }
+
     // Looking around
     camera_position = glm::rotate(camera_position, window->getMouseOffset().y * 0.005f, glm::vec3(1, 0, 0));
-    camera_position = glm::rotate(camera_position, window->getMouseOffset().x * -0.005f, glm::vec3(glm::inverse(camera_position) * glm::vec4(0, 1, 0, 1)));
+    camera_position = glm::rotate(camera_position, window->getMouseOffset().x * -0.005f,
+                                  glm::vec3(glm::inverse(camera_position) * glm::vec4(0, 1, 0, 1)));
 
     // glm::mat4 camera_complete = camera_rotation;
     // camera_complete[3] = camera_position[3];
@@ -96,6 +106,8 @@ void loop(float delta)
     renderer->setCamera(camera_position);
 
     rg.setTransform(glm::rotate(rg.getTransform(), 1 * delta, glm::vec3(0, 1, 0)));
+    renderer->setLightPosition(light, glm::rotate(rg.getTransform(), 1 * delta, glm::vec3(0, 1, 0)) *
+                                          glm::translate(glm::mat4(), glm::vec3(3, 0, 0)) * glm::vec4(0, 0, 0, 1));
 }
 
 int main(int, char**)
@@ -109,14 +121,15 @@ int main(int, char**)
     window = &w;
 
     std::vector<Frender::Vertex> vertices = {
-        {1.0f,  1.0f, 0.0f , 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0}, // top right
-        {1.0f, -1.0f, 0.0f , 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0}, // bottom right
-        {-1.0f, -1.0f, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  // bottom left
-        {-1.0f,  1.0f, 0.0f, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0}  // top left 
+        {1.0f, 1.0f, 0.0f, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},   // top right
+        {1.0f, -1.0f, 0.0f, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},  // bottom right
+        {-1.0f, -1.0f, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // bottom left
+        {-1.0f, 1.0f, 0.0f, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0}   // top left
     };
-    std::vector<uint32_t> indices = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+    std::vector<uint32_t> indices = {
+        // note that we start from 0!
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
     };
 
     auto mesh = r.createMesh(vertices, indices);
@@ -136,7 +149,8 @@ int main(int, char**)
     // Texture
     int width, height, channels;
     stbi_set_flip_vertically_on_load(true);
-    float* data = stbi_loadf("Assets/GrandCanyon_C_YumaPoint/GCanyon_C_YumaPoint_3k.hdr", &width, &height, &channels, STBI_rgb_alpha);
+    float* data = stbi_loadf("Assets/GrandCanyon_C_YumaPoint/GCanyon_C_YumaPoint_3k.hdr", &width, &height, &channels,
+                             STBI_rgb_alpha);
     std::cout << channels << "\n";
 
     if (data)
@@ -168,7 +182,8 @@ int main(int, char**)
     //                 o.setTransform(glm::translate(i.getTransform(), glm::vec3(x, y, z)));
     //             }
 
-    //             auto light = r.createPointLight(glm::vec3(x, y, z), glm::vec3(((x+24.0)/48.0), ((y+24.0)/48.0), ((z+24.0)/48.0)) * 1.0f, 6);
+    //             auto light = r.createPointLight(glm::vec3(x, y, z), glm::vec3(((x+24.0)/48.0), ((y+24.0)/48.0),
+    //             ((z+24.0)/48.0)) * 1.0f, 6);
 
     //         }
     //     }
@@ -176,15 +191,6 @@ int main(int, char**)
     // auto objs = loadModel(&r, "Assets/HighPolySphere.obj");
 
     // auto objs = loadModel(&r, "Assets/Sponza/sponza.obj");
-    ///home/finn/cpp/flux/Frender/Assets/sponza-scene/source/sponza_zip/glTF/Sponza.gltf
-    auto objs = loadModel(&r, "Assets/sponza-scene/source/sponza_zip/glTF/Sponza.gltf");
-
-
-    for (auto i : objs)
-    {
-        // Scale it up
-        i.setTransform(glm::scale(i.getTransform(), glm::vec3(1.5)));
-    }
 
     auto objs2 = loadModel(&r, "Assets/HighPolySphere.obj");
     for (auto i : objs2)
@@ -203,19 +209,29 @@ int main(int, char**)
         for (int i = 0; i < 3; i++)
         {
             auto mat = renderer->createMaterial();
-            renderer->getMaterial(mat)->uniforms.set("color", glm::vec3(i == 0 ? 0.8 : 0, i == 1 ? 0.8 : 0, i == 2 ? 0.8 : 0));
+            renderer->getMaterial(mat)->uniforms.set("color",
+                                                     glm::vec3(i == 0 ? 0.8 : 0, i == 1 ? 0.8 : 0, i == 2 ? 0.8 : 0));
             renderer->getMaterial(mat)->uniforms.set("roughness", (float)i / 2.0f + 0.01f);
-            auto ro1 = renderer->createRenderObject(traits.mesh, mat, glm::translate(glm::mat4(), glm::vec3(2, 2 + (i*2), 2)));
+            auto ro1 = renderer->createRenderObject(traits.mesh, mat,
+                                                    glm::translate(glm::mat4(), glm::vec3(2, 2 + (i * 2), 2)));
             rg2.addRenderObject(ro1);
         }
 
         auto ro2 = renderer->createRenderObject(traits.mesh, mat, glm::translate(traits.transform, glm::vec3(4, 0, 0)));
         rg.addRenderObject(i);
-        rg.addRenderObject(ro2);
+        // rg.addRenderObject(ro2);
+        ro = ro2;
         rg.addRenderGroup(rg2);
     }
 
-    // auto light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
+    auto objs = loadModel(&r, "Assets/sponza-scene/source/sponza_zip/glTF/Sponza.gltf");
+    for (auto i : objs)
+    {
+        // Scale it up
+        i.setTransform(glm::scale(i.getTransform(), glm::vec3(1.5)));
+    }
+
+    light = r.createPointLight(glm::vec3(0.120, -0.870, 2.030), glm::vec3(104, 0, 0), 4);
     // auto light2 = r.createPointLight(glm::vec3(0.120, -0.870, -2.030), glm::vec3(0, 4, 0), 4);
     // auto light3 = r.createPointLight(glm::vec3(0, 2, 0), glm::vec3(0, 0, 4), 4);
     // auto dlight = r.createDirectionalLight(glm::vec3(1.5, 1.5, 1.5), glm::vec3(0.2f, -1.0f, 0.3f));
